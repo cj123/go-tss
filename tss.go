@@ -15,45 +15,69 @@ import (
 	"howett.net/plist"
 )
 
-type TSSRequest struct {
+type Request struct {
 	plist C.plist_t
 }
 
-func NewTSSRequest(overrides interface{}) *TSSRequest {
-	return &TSSRequest{
+func NewRequest(overrides interface{}) *Request {
+	return &Request{
 		C.tss_request_new(MarshalCPlist(overrides)),
 	}
 }
 
-func (t *TSSRequest) AddParametersFromManifest(params interface{}, buildIdentity interface{}) {
-	C.tss_parameters_add_from_manifest(MarshalCPlist(params), MarshalCPlist(buildIdentity))
+func AddParametersFromManifest(p interface{}, buildIdentity interface{}) interface{} {
+	pls := MarshalCPlist(p)
+
+	C.tss_parameters_add_from_manifest(pls, MarshalCPlist(buildIdentity))
+
+	UnmarshalCPlist(pls, &p)
+
+	return p
 }
 
-func (t *TSSRequest) AddCommonTags(params interface{}, overrides interface{}) {
+func (t *Request) AddCommonTags(params interface{}, overrides interface{}) {
 	C.tss_request_add_common_tags(t.plist, MarshalCPlist(params), MarshalCPlist(overrides))
 }
 
-func (t *TSSRequest) AddAPTags(params interface{}, overrides interface{}) {
+func (t *Request) AddAPTags(params interface{}, overrides interface{}) {
 	C.tss_request_add_ap_tags(t.plist, MarshalCPlist(params), MarshalCPlist(overrides))
 }
 
-func (t *TSSRequest) AddBaseBandTags(params interface{}, overrides interface{}) {
+func (t *Request) AddBaseBandTags(params interface{}, overrides interface{}) {
 	C.tss_request_add_baseband_tags(t.plist, MarshalCPlist(params), MarshalCPlist(overrides))
 }
 
-func (t *TSSRequest) AddSETags(params interface{}, overrides interface{}) {
+func (t *Request) AddSETags(params interface{}, overrides interface{}) {
 	C.tss_request_add_se_tags(t.plist, MarshalCPlist(params), MarshalCPlist(overrides))
 }
 
-func (t *TSSRequest) AddAPImg4Tags(params interface{}) {
+func (t *Request) AddAPImg4Tags(params interface{}) {
 	C.tss_request_add_ap_img4_tags(t.plist, MarshalCPlist(params))
 }
 
-func (t *TSSRequest) AddAPImg3Tags(params interface{}) {
+func (t *Request) AddAPImg3Tags(params interface{}) {
 	C.tss_request_add_ap_img3_tags(t.plist, MarshalCPlist(params))
 }
 
-func (t *TSSRequest) Bytes() ([]byte, error) {
+func (t *Request) AddSavageTags(params interface{}, overrides interface{}) {
+	C.tss_request_add_savage_tags(t.plist, MarshalCPlist(params), MarshalCPlist(overrides))
+}
+
+func (t *Request) Send() (map[string]interface{}, error) {
+	response := C.tss_request_send(t.plist, nil)
+
+	var p map[string]interface{}
+
+	err := UnmarshalCPlist(response, &p)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return p, err
+}
+
+func (t *Request) Bytes() ([]byte, error) {
 	var p interface{}
 
 	err := UnmarshalCPlist(t.plist, &p)
