@@ -6,6 +6,13 @@ package tss
 #include "./idevicerestore/src/common.c"
 
 #cgo LDFLAGS: -lplist -lcurl -L${SRCDIR}/idevicerestore/src
+
+void disableMessages() {
+	error_disabled = 1;
+	debug_disabled = 1;
+	info_disabled = 1;
+}
+
 */
 import "C"
 import (
@@ -14,6 +21,10 @@ import (
 
 	"howett.net/plist"
 )
+
+func DisableMessages() {
+	C.disableMessages()
+}
 
 type Request struct {
 	plist C.plist_t
