@@ -19,6 +19,7 @@ import "C"
 import (
 	"errors"
 	"unicode/utf8"
+	"unsafe"
 
 	"howett.net/plist"
 )
@@ -114,13 +115,19 @@ func MarshalCPlist(data interface{}) C.plist_t {
 
 	var x C.plist_t
 
-	C.plist_from_xml(C.CString(string(val)), C.uint32_t(utf8.RuneCount(val)), &x)
+	cVal := C.CString(string(val))
+	defer C.free(unsafe.Pointer(cVal))
+
+	C.plist_from_xml(cVal, C.uint32_t(utf8.RuneCount(val)), &x)
 
 	return x
 }
 
 func UnmarshalCPlist(cPlist C.plist_t, d interface{}) error {
 	str := C.CString("")
+	defer C.free(unsafe.Pointer(str))
+	defer C.free(unsafe.Pointer(cPlist))
+
 	l := C.uint32_t(0)
 
 	C.plist_to_xml(cPlist, &str, &l)
