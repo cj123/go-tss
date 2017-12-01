@@ -6,7 +6,8 @@ package tss
 #include "./idevicerestore/src/tss.c"
 #include "./idevicerestore/src/common.c"
 
-#cgo LDFLAGS: -lplist -lcurl -L${SRCDIR}/idevicerestore/src
+#cgo pkg-config: --libs --static libplist libcurl
+#cgo LDFLAGS: -L${SRCDIR}/idevicerestore/src
 
 void disableMessages() {
 	error_disabled = 1;
