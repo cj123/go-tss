@@ -1,6 +1,7 @@
 package tss
 
 /*
+#define HAVE_STRSEP 1
 #include <plist/plist.h>
 #include "./idevicerestore/src/tss.c"
 #include "./idevicerestore/src/common.c"
