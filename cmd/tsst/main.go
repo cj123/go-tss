@@ -11,6 +11,7 @@ import (
 
 func main() {
 	client := api.NewIPSWClientLatest()
+	tss.DisableMessages()
 
 	ip, err := ipsw.NewIPSWWithIdentifierBuild(client, os.Args[1], os.Args[2])
 
@@ -26,12 +27,21 @@ func main() {
 
 	manifest := raw["BuildIdentities"].([]interface{})[0]
 
-	params := tss.AddParametersFromManifest(map[string]interface{}{
+	params, err := tss.AddParametersFromManifest(map[string]interface{}{
 		"ApECID":           22222222222222,
 		"ApProductionMode": true,
 	}, manifest)
 
-	tssReq := tss.NewRequest(nil)
+	if err != nil {
+		panic(err)
+	}
+
+	tssReq, err := tss.NewRequest(nil)
+
+	if err != nil {
+		panic(err)
+	}
+
 	tssReq.AddCommonTags(params, nil)
 
 	b, err := tssReq.Bytes()
