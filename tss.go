@@ -32,7 +32,10 @@ type Request struct {
 	plist C.plist_t
 }
 
-var ErrInvalidStatus = errors.New("tss: invalid idevicerestore/tss status, is less than zero")
+var (
+	ErrInvalidStatus = errors.New("tss: invalid idevicerestore/tss status, is less than zero")
+	ErrInvalidPlist  = errors.New("tss: invalid plist (could not convert to xml)")
+)
 
 func NewRequest(overrides interface{}) (*Request, error) {
 	pp, err := MarshalCPlist(overrides)
@@ -266,7 +269,7 @@ func UnmarshalCPlist(cPlist C.plist_t, d interface{}) error {
 	C.plist_to_xml(cPlist, &str, &l)
 
 	if l <= 0 {
-		return errors.New("invalid plist")
+		return ErrInvalidPlist
 	}
 
 	val := C.GoString(str)
