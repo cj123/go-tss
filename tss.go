@@ -56,11 +56,15 @@ func AddParametersFromManifest(p interface{}, buildIdentity interface{}) (interf
 		return nil, err
 	}
 
+	defer plistFree(pls)
+
 	id, err := MarshalCPlist(buildIdentity)
 
 	if err != nil {
 		return nil, err
 	}
+
+	defer plistFree(id)
 
 	status := C.tss_parameters_add_from_manifest(pls, id)
 
@@ -84,11 +88,15 @@ func (t *Request) AddCommonTags(params interface{}, overrides interface{}) error
 		return err
 	}
 
+	defer plistFree(p)
+
 	over, err := MarshalCPlist(overrides)
 
 	if err != nil {
 		return err
 	}
+
+	defer plistFree(over)
 
 	status := C.tss_request_add_common_tags(t.plist, p, over)
 	if status < 0 {
@@ -105,11 +113,15 @@ func (t *Request) AddAPTags(params interface{}, overrides interface{}) error {
 		return err
 	}
 
+	defer plistFree(p)
+
 	over, err := MarshalCPlist(overrides)
 
 	if err != nil {
 		return err
 	}
+
+	defer plistFree(over)
 
 	status := C.tss_request_add_ap_tags(t.plist, p, over)
 	if status < 0 {
@@ -126,11 +138,15 @@ func (t *Request) AddBaseBandTags(params interface{}, overrides interface{}) err
 		return err
 	}
 
+	defer plistFree(p)
+
 	over, err := MarshalCPlist(overrides)
 
 	if err != nil {
 		return err
 	}
+
+	defer plistFree(over)
 
 	status := C.tss_request_add_baseband_tags(t.plist, p, over)
 	if status < 0 {
@@ -147,11 +163,15 @@ func (t *Request) AddSETags(params interface{}, overrides interface{}) error {
 		return err
 	}
 
+	defer plistFree(p)
+
 	over, err := MarshalCPlist(overrides)
 
 	if err != nil {
 		return err
 	}
+
+	defer plistFree(over)
 
 	status := C.tss_request_add_se_tags(t.plist, p, over)
 	if status < 0 {
@@ -168,6 +188,8 @@ func (t *Request) AddAPImg4Tags(params interface{}) error {
 		return err
 	}
 
+	defer plistFree(p)
+
 	status := C.tss_request_add_ap_img4_tags(t.plist, p)
 	if status < 0 {
 		return ErrInvalidStatus
@@ -182,6 +204,8 @@ func (t *Request) AddAPImg3Tags(params interface{}) error {
 	if err != nil {
 		return err
 	}
+
+	defer plistFree(p)
 
 	status := C.tss_request_add_ap_img3_tags(t.plist, p)
 	if status < 0 {
@@ -198,11 +222,15 @@ func (t *Request) AddSavageTags(params interface{}, overrides interface{}) error
 		return err
 	}
 
+	defer plistFree(p)
+
 	over, err := MarshalCPlist(overrides)
 
 	if err != nil {
 		return err
 	}
+
+	defer plistFree(over)
 
 	status := C.tss_request_add_savage_tags(t.plist, p, over)
 	if status < 0 {
@@ -238,6 +266,10 @@ func (t *Request) Bytes() ([]byte, error) {
 	return plist.Marshal(p, plist.XMLFormat)
 }
 
+func (t *Request) Close() {
+	plistFree(t.plist)
+}
+
 func MarshalCPlist(data interface{}) (C.plist_t, error) {
 	if data == nil {
 		return nil, nil
@@ -262,7 +294,6 @@ func MarshalCPlist(data interface{}) (C.plist_t, error) {
 func UnmarshalCPlist(cPlist C.plist_t, d interface{}) error {
 	str := C.CString("")
 	defer C.free(unsafe.Pointer(str))
-	defer C.free(unsafe.Pointer(cPlist))
 
 	l := C.uint32_t(0)
 
@@ -277,4 +308,12 @@ func UnmarshalCPlist(cPlist C.plist_t, d interface{}) error {
 	_, err := plist.Unmarshal([]byte(val), d)
 
 	return err
+}
+
+func plistFree(cPlist C.plist_t) {
+	if cPlist == nil {
+		return
+	}
+
+	C.plist_free(cPlist)
 }

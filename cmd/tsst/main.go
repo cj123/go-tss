@@ -42,6 +42,8 @@ func main() {
 		panic(err)
 	}
 
+	defer tssReq.Close()
+
 	tssReq.AddCommonTags(params, nil)
 
 	b, err := tssReq.Bytes()
